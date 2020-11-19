@@ -6,7 +6,15 @@ __version__ = '0.1.0'
 
 import requests
 from urllib.parse import urljoin, urlparse
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+
+
+class Dataset:
+    __slots__ = ['id', 'title']
+
+    def __init__(self, id, title=None):
+        self.id = id
+        self.title = title
 
 
 def build_url(url: str, part: str) -> Optional[str]:
@@ -29,8 +37,8 @@ def get_from_endpoint(hapi_url: str, endpoint: str) -> Optional[Dict]:
         raise ValueError(f"Given HAPI url seems invalid {hapi_url}")
 
 
-def get_catalog(hapi_url: str) -> Optional[Dict]:
+def get_catalog(hapi_url: str) -> Optional[List[Dataset]]:
     response = get_from_endpoint(hapi_url, 'catalog')
     if response:
-        return response["catalog"]
+        return [Dataset(**entry) for entry in response["catalog"]]
     return None

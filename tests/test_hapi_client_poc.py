@@ -26,6 +26,8 @@ class TestHAPICatalog(unittest.TestCase):
         catalog = get_catalog("http://hapi.ftecs.com/hapi/")
         self.assertIsNotNone(catalog)
         self.assertGreater(len(catalog), 0)
+        self.assertNotEqual(catalog[0].id, "")
+        self.assertIsNotNone(catalog[0].title)
 
     def test_a_wrong_server_should_return_none(self):
         self.assertIsNone(get_catalog("http://sciqlop.lpp.polytechnique.fr/"), 0)
