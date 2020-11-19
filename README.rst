@@ -6,8 +6,8 @@ HAPI client POC
 .. image:: https://img.shields.io/pypi/v/hapi_client_poc.svg
         :target: https://pypi.python.org/pypi/hapi_client_poc
 
-.. image:: https://img.shields.io/travis/jeandet/hapi_client_poc.svg
-        :target: https://travis-ci.com/jeandet/hapi_client_poc
+.. image:: https://github.com/jeandet/hapi_client_poc/workflows/Python%20package/badge.svg
+        :target: https://github.com/jeandet/hapi_client_poc/actions?query=workflow%3A%22Python+package%22
 
 .. image:: https://readthedocs.org/projects/hapi-client-poc/badge/?version=latest
         :target: https://hapi-client-poc.readthedocs.io/en/latest/?badge=latest

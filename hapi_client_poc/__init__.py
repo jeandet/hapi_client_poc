@@ -10,11 +10,12 @@ from typing import Optional, Dict, List
 
 
 class Dataset:
-    __slots__ = ['id', 'title']
+    __slots__ = ['id', 'title', 'extra_fields']
 
-    def __init__(self, id, title=None):
+    def __init__(self, id, title=None, **kwargs):
         self.id = id
         self.title = title
+        self.extra_fields = kwargs
 
 
 def build_url(url: str, part: str) -> Optional[str]:
