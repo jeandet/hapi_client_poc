@@ -6,7 +6,7 @@ __version__ = '0.1.0'
 
 import requests
 from urllib.parse import urljoin, urlparse
-from typing import Optional, Dict, Union
+from typing import Optional, Dict
 
 
 def build_url(url: str, part: str) -> Optional[str]:
