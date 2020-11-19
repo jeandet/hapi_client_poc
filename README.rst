@@ -13,6 +13,9 @@ HAPI client POC
         :target: https://hapi-client-poc.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
+.. image:: https://codecov.io/gh/jeandet/hapi_client_poc/coverage.svg?branch=main
+        :target: https://codecov.io/gh/jeandet/hapi_client_poc/branch/main
+        :alt: Coverage Status
 
 
 

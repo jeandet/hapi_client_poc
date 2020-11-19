@@ -35,6 +35,7 @@ def get_from_endpoint(hapi_url: str, endpoint: str) -> Optional[Dict]:
                 return response
     else:
         raise ValueError(f"Given HAPI url seems invalid {hapi_url}")
+    return None
 
 
 def get_catalog(hapi_url: str) -> Optional[List[Dataset]]:
