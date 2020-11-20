@@ -5,6 +5,7 @@ __email__ = 'alexis.jeandet@member.fsf.org'
 __version__ = '0.1.0'
 
 import requests
+from functools import lru_cache
 from urllib.parse import urljoin, urlparse
 from typing import Optional, Dict, List
 import logging
@@ -46,6 +47,22 @@ def get_from_endpoint(hapi_url: str, endpoint: str, parameters=None) -> Optional
                 return response
     else:
         raise ValueError(f"Given HAPI url seems invalid {hapi_url}")
+    return None
+
+
+class Capabilities:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def __repr__(self):
+        return f'''outputFormats: {self.outputFormats}'''
+
+
+@lru_cache
+def get_capabilities(hapi_url: str):
+    response = get_from_endpoint(hapi_url, Endpoints.CAPABILITIES)
+    if response:
+        return Capabilities(**response)
     return None
 
 

@@ -5,7 +5,8 @@
 import unittest
 from ddt import ddt, data, unpack
 
-from hapi_client_poc import get_catalog, get_info, get_from_endpoint, build_url, Endpoints, parse_status
+from hapi_client_poc import get_catalog, get_info, get_capabilities, get_from_endpoint, build_url, Endpoints, \
+    parse_status
 
 
 @ddt
@@ -55,6 +56,12 @@ class TestHAPIRequests(unittest.TestCase):
     def test_a_wrong_server_should_return_none(self):
         self.assertIsNone(get_catalog("http://sciqlop.lpp.polytechnique.fr/"), 0)
         self.assertIsNone(get_info("http://sciqlop.lpp.polytechnique.fr/", "some_param"), 0)
+
+    def test_a_valid_server_should_expose_capabilities(self):
+        capabilities = get_capabilities("http://hapi.ftecs.com/hapi/")
+        self.assertIsNotNone(capabilities)
+        self.assertGreater(len(capabilities.outputFormats), 0)
+        self.assertIn(str(capabilities.outputFormats), str(capabilities))
 
     def test_a_valid_dataset_has_description(self):
         dataset = get_catalog("http://hapi.ftecs.com/hapi/")[0]
