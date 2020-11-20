@@ -26,6 +26,14 @@ def build_url(url: str, part: str) -> Optional[str]:
         return None
 
 
+def parse_status(response: Dict) -> Optional[Dict]:
+    if response['status']["message"] == "OK" and response['status']['code'] == 1200:
+        response.pop('status')
+        response.pop('HAPI')
+        return response
+    return None
+
+
 def get_from_endpoint(hapi_url: str, endpoint: str, parameters=None) -> Optional[Dict]:
     url = build_url(hapi_url, endpoint)
     if url:
@@ -33,10 +41,8 @@ def get_from_endpoint(hapi_url: str, endpoint: str, parameters=None) -> Optional
         response = requests.get(url, params=parameters)
         if response.ok:
             log.debug(f"success!")
-            response = response.json()
-            if response['status']["message"] == "OK":
-                response.pop('status')
-                response.pop('HAPI')
+            response = parse_status(response.json())
+            if response:
                 return response
     else:
         raise ValueError(f"Given HAPI url seems invalid {hapi_url}")

@@ -5,7 +5,7 @@
 import unittest
 from ddt import ddt, data, unpack
 
-from hapi_client_poc import get_catalog, get_info, get_from_endpoint, build_url, Endpoints
+from hapi_client_poc import get_catalog, get_info, get_from_endpoint, build_url, Endpoints, parse_status
 
 
 @ddt
@@ -44,6 +44,14 @@ class TestHAPIRequests(unittest.TestCase):
         self.assertNotEqual(catalog[0].id, "")
         self.assertIsNotNone(catalog[0].title)
 
+    def test_wrong_status_code_should_discard_data(self):
+        self.assertIsNone(parse_status({'status': {'code': 1400, 'message': "OK"}}))
+        self.assertIsNone(parse_status({'status': {'code': 1200, 'message': "NOK"}}))
+
+    def test_correct_status_code_should_return_data(self):
+        self.assertDictEqual(
+            parse_status({'HAPI': "", 'status': {'code': 1200, 'message': "OK"}, 'data': 2}), {'data': 2})
+
     def test_a_wrong_server_should_return_none(self):
         self.assertIsNone(get_catalog("http://sciqlop.lpp.polytechnique.fr/"), 0)
         self.assertIsNone(get_info("http://sciqlop.lpp.polytechnique.fr/", "some_param"), 0)
@@ -52,6 +60,7 @@ class TestHAPIRequests(unittest.TestCase):
         dataset = get_catalog("http://hapi.ftecs.com/hapi/")[0]
         self.assertIn(dataset.id, str(dataset))
         desc = dataset.description
+        desc = dataset.description  # increases branch coverage if it works
         self.assertTrue(hasattr(desc, 'startDate'))
         self.assertTrue(hasattr(desc, 'stopDate'))
         self.assertTrue(hasattr(desc, 'parameters'))
