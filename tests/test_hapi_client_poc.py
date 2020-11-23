@@ -4,7 +4,7 @@
 
 import unittest
 from ddt import ddt, data, unpack
-from time import perf_counter_ns
+from time import perf_counter
 from functools import partial
 
 from hapi_client_poc import get_catalog, get_info, get_capabilities, get_from_endpoint, build_url, Endpoints, \
@@ -70,9 +70,9 @@ class TestHAPIRequests(unittest.TestCase):
 
     def test_when_in_cache_a_request_is_much_faster(self):
         def timeit(f, arg) -> int:
-            start = perf_counter_ns()
+            start = perf_counter()
             f(arg)
-            stop = perf_counter_ns()
+            stop = perf_counter()
             return stop - start
 
         def get_capabilities_no_cache(url):
