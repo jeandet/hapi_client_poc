@@ -4,9 +4,11 @@
 
 import unittest
 from ddt import ddt, data, unpack
+from time import perf_counter_ns
+from functools import partial
 
 from hapi_client_poc import get_catalog, get_info, get_capabilities, get_from_endpoint, build_url, Endpoints, \
-    parse_status
+    parse_status, clear_requests_caches
 
 
 @ddt
@@ -26,6 +28,9 @@ class TestHAPIUrlsMethods(unittest.TestCase):
 
     def test_merge_url_without_slashes(self):
         self.assertEqual(build_url('http://server.domain', 'path'), 'http://server.domain/path')
+
+    def test_merge_url_path_without_slashes(self):
+        self.assertEqual(build_url('http://server.domain/folder', 'path'), 'http://server.domain/folder/path')
 
     def test_merge_url_with_leading_slash(self):
         self.assertEqual(build_url('http://server.domain', '/path'), 'http://server.domain/path')
@@ -63,6 +68,21 @@ class TestHAPIRequests(unittest.TestCase):
         self.assertGreater(len(capabilities.outputFormats), 0)
         self.assertIn(str(capabilities.outputFormats), str(capabilities))
 
+    def test_when_in_cache_a_request_is_much_faster(self):
+        def timeit(f, arg) -> int:
+            start = perf_counter_ns()
+            f(arg)
+            stop = perf_counter_ns()
+            return stop - start
+
+        def get_capabilities_no_cache(url):
+            clear_requests_caches()
+            get_capabilities(url)
+
+        without_cache = sum(map(partial(timeit, get_capabilities_no_cache), ["http://hapi.ftecs.com/hapi/"] * 10))
+        with_cache = sum(map(partial(timeit, get_capabilities), ["http://hapi.ftecs.com/hapi/"] * 1000))
+        self.assertGreater(without_cache, with_cache)
+
     def test_a_valid_dataset_has_description(self):
         dataset = get_catalog("http://hapi.ftecs.com/hapi/")[0]
         self.assertIn(dataset.id, str(dataset))
@@ -71,7 +91,9 @@ class TestHAPIRequests(unittest.TestCase):
         self.assertTrue(hasattr(desc, 'startDate'))
         self.assertTrue(hasattr(desc, 'stopDate'))
         self.assertTrue(hasattr(desc, 'parameters'))
+        self.assertIn(desc.startDate, str(desc))
         param = desc.parameters[0]
         self.assertTrue(hasattr(param, 'name'))
         self.assertTrue(hasattr(param, 'type'))
         self.assertTrue(hasattr(param, 'units'))
+        self.assertIn(param.units, str(param))

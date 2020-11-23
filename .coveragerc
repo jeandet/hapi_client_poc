@@ -3,3 +3,4 @@ branch = True
 
 omit =
     setup.py
+    hapi_client_poc/json/__init__.py

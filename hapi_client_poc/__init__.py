@@ -20,7 +20,7 @@ class Endpoints:
 
 
 def build_url(url: str, part: str) -> Optional[str]:
-    url = urlparse(urljoin(url, part))
+    url = urlparse(urljoin(url + '/', part))
     if all([url.scheme, url.hostname]):
         return url.geturl()
     else:
@@ -58,7 +58,8 @@ class Capabilities:
         return f'''outputFormats: {self.outputFormats}'''
 
 
-@lru_cache
+# might be a bad idea, at least it should not cache failed requests
+@lru_cache(maxsize=None)
 def get_capabilities(hapi_url: str):
     response = get_from_endpoint(hapi_url, Endpoints.CAPABILITIES)
     if response:
@@ -70,6 +71,9 @@ class Parameter:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
+    def __repr__(self):
+        return f'''Parameter: {self.__dict__}'''
+
 
 class DatasetInfo:
     def __init__(self, **kwargs):
@@ -77,7 +81,12 @@ class DatasetInfo:
         self.parameters = [Parameter(**param) for param in params]
         self.__dict__.update(kwargs)
 
+    def __repr__(self):
+        return f'''Dataset Description: {self.__dict__}'''
 
+
+# might be a bad idea, at least it should not cache failed requests
+@lru_cache(maxsize=None)
 def get_info(hapi_url: str, parameter_id: str) -> Optional[DatasetInfo]:
     response = get_from_endpoint(hapi_url, Endpoints.INFO, {'id': parameter_id})
     if response:
@@ -91,21 +100,28 @@ class Dataset:
         self.id = kwargs.pop('id')  # just to get completion from IDE
         self.title = kwargs.pop('title')
         self.__dict__.update(kwargs)
-        self._description = None
+        self.__description = None
         self._hapi_url = hapi_url
 
     @property
     def description(self):
-        if self._description is None:
-            self._description = get_info(self._hapi_url, self.id)
-        return self._description
+        if self.__description is None:
+            self.__description = get_info(self._hapi_url, self.id)
+        return self.__description
 
     def __repr__(self):
         return f'''Dataset: id {self.id}, title {self.title}'''
 
 
+@lru_cache(maxsize=None)
 def get_catalog(hapi_url: str) -> Optional[List[Dataset]]:
     response = get_from_endpoint(hapi_url, Endpoints.CATALOG)
     if response:
         return [Dataset(hapi_url, **entry) for entry in response["catalog"]]
     return None
+
+
+def clear_requests_caches():
+    get_catalog.cache_clear()
+    get_info.cache_clear()
+    get_capabilities.cache_clear()
