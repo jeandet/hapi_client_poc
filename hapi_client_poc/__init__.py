@@ -13,10 +13,30 @@ import logging
 log = logging.getLogger(__name__)
 
 
+class __CachedRequest:
+    def __init__(self, function):
+        self.cache = {}
+        self.function = function
+
+    def __call__(self, *args, **kwargs):
+        key = (args, frozenset(kwargs.items()))
+        if key in self.cache:
+            return self.cache[key]
+        else:
+            result = self.function(*args, **kwargs)
+            if result is not None:
+                self.cache[key] = result
+            return result
+
+    def cache_clear(self):
+        self.cache.clear()
+
+
 class Endpoints:
     CATALOG = 'catalog'
     CAPABILITIES = 'capabilities'
     INFO = 'info'
+    DATA = 'data'
 
 
 def build_url(url: str, part: str) -> Optional[str]:
@@ -58,8 +78,7 @@ class Capabilities:
         return f'''outputFormats: {self.outputFormats}'''
 
 
-# might be a bad idea, at least it should not cache failed requests
-@lru_cache(maxsize=None)
+@__CachedRequest
 def get_capabilities(hapi_url: str):
     response = get_from_endpoint(hapi_url, Endpoints.CAPABILITIES)
     if response:
@@ -85,8 +104,7 @@ class DatasetInfo:
         return f'''Dataset Description: {self.__dict__}'''
 
 
-# might be a bad idea, at least it should not cache failed requests
-@lru_cache(maxsize=None)
+@__CachedRequest
 def get_info(hapi_url: str, parameter_id: str) -> Optional[DatasetInfo]:
     response = get_from_endpoint(hapi_url, Endpoints.INFO, {'id': parameter_id})
     if response:
@@ -113,7 +131,7 @@ class Dataset:
         return f'''Dataset: id {self.id}, title {self.title}'''
 
 
-@lru_cache(maxsize=None)
+@__CachedRequest
 def get_catalog(hapi_url: str) -> Optional[List[Dataset]]:
     response = get_from_endpoint(hapi_url, Endpoints.CATALOG)
     if response:
