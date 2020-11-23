@@ -8,7 +8,7 @@ from time import perf_counter
 from functools import partial
 
 from hapi_client_poc import get_catalog, get_info, get_capabilities, get_from_endpoint, build_url, Endpoints, \
-    parse_status, clear_requests_caches
+    extract_payload, clear_requests_caches
 
 
 @ddt
@@ -51,12 +51,12 @@ class TestHAPIRequests(unittest.TestCase):
         self.assertIsNotNone(catalog[0].title)
 
     def test_wrong_status_code_should_discard_data(self):
-        self.assertIsNone(parse_status({'status': {'code': 1400, 'message': "OK"}}))
-        self.assertIsNone(parse_status({'status': {'code': 1200, 'message': "NOK"}}))
+        self.assertIsNone(extract_payload({'status': {'code': 1400, 'message': "OK"}}))
+        self.assertIsNone(extract_payload({'status': {'code': 1200, 'message': "NOK"}}))
 
     def test_correct_status_code_should_return_data(self):
         self.assertDictEqual(
-            parse_status({'HAPI': "", 'status': {'code': 1200, 'message': "OK"}, 'data': 2}), {'data': 2})
+            extract_payload({'HAPI': "", 'status': {'code': 1200, 'message': "OK"}, 'data': 2}), {'data': 2})
 
     def test_a_wrong_server_should_return_none(self):
         self.assertIsNone(get_catalog("http://sciqlop.lpp.polytechnique.fr/"), 0)
