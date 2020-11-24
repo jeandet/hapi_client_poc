@@ -7,7 +7,7 @@ from ddt import ddt, data, unpack
 from time import perf_counter
 from functools import partial
 from dateutil import parser
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from hapi_client_poc import get_catalog, get_info, get_capabilities, get_from_endpoint, build_url, Endpoints, \
     clear_requests_caches, get_data, hapi_server
@@ -123,3 +123,10 @@ class TestHAPIRequests(unittest.TestCase):
             t_mid = t_start + ((t_stop - t_start) / 2)
             values = server.get_data(dataset.id, t_mid, t_mid + timedelta(minutes=10))
             self.assertIsNotNone(values)
+
+    def test_requesting_data_for_a_parameter_which_doesnt_belong_to_a_dataset_raises(self):
+        with self.assertRaises(ValueError):
+            dataset = get_catalog(self.hapi_server_url)[0]
+            get_data(hapi_url=self.hapi_server_url, dataset_id=dataset.id, start_time=datetime.now(),
+                     stop_time=datetime.now() + timedelta(minutes=10),
+                     parameters=["this parameter doesn't exists", "neither this one"])

@@ -16,6 +16,7 @@ import pandas as pds
 from contextlib import contextmanager
 from . import parsers as hapi_parsers
 from . import caching as hapi_caching
+from . import multiprocessing as hapi_multiproc
 
 log = logging.getLogger(__name__)
 
@@ -172,12 +173,25 @@ def get_catalog(hapi_url: str) -> Optional[List[Dataset]]:
     return None
 
 
-def get_data(hapi_url: str, parameter_id: str, start_time: Union[datetime, str],
-             stop_time: Union[datetime, str]) -> Optional[pds.DataFrame]:
-    desc = get_info(hapi_url=hapi_url, parameter_id=parameter_id)
+@hapi_multiproc.SplitDataRequest
+@hapi_caching.DataRequestCache
+def get_data(hapi_url: str, dataset_id: str, start_time: Union[datetime, str],
+             stop_time: Union[datetime, str], parameters: Optional[List[str]] = None) -> Optional[pds.DataFrame]:
+    desc = get_info(hapi_url=hapi_url, parameter_id=dataset_id)
+    request_param = {
+        'id': dataset_id,
+        'time.min': isoformat(start_time),
+        'time.max': isoformat(stop_time),
+        'format': 'csv'}
+    if parameters is not None and len(parameters):
+        if not set(parameters).issubset(desc.parameters.keys()):
+            raise ValueError(f"""All parameters must belong to given dataset
+Given parameters: {parameters}
+Dataset parameters: {desc.parameters.keys()}
+""")
+        request_param['parameters'] = ','.join(parameters)
     df = get_from_endpoint(hapi_url=hapi_url, endpoint=Endpoints.DATA,
-                           parameters={'id': parameter_id, 'time.min': isoformat(start_time),
-                                       'time.max': isoformat(stop_time), 'format': 'csv'},
+                           parameters=request_param,
                            payload_extractor=hapi_parsers.csv)
     return df
 
