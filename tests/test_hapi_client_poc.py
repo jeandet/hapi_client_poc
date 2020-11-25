@@ -124,7 +124,7 @@ class TestHAPIRequests(unittest.TestCase):
             values = server.get_data(dataset.id, t_mid, t_mid + timedelta(minutes=10))
             self.assertIsNotNone(values)
 
-    def test_requesting_data_for_a_parameter_which_doesnt_belong_to_a_dataset_raises(self):
+    def test_get_data_for_unrelated_with_dataset_parameter_raises(self):
         with self.assertRaises(ValueError):
             dataset = get_catalog(self.hapi_server_url)[0]
             get_data(hapi_url=self.hapi_server_url, dataset_id=dataset.id, start_time=datetime.now(),

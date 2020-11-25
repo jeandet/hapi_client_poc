@@ -10,7 +10,7 @@ from typing import Optional, List, Union, Callable, TypeVar, Dict
 import json
 from functools import partial, singledispatch
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.parser import parse as parse_datetime
 import pandas as pds
 from contextlib import contextmanager
@@ -21,11 +21,14 @@ from . import multiprocessing as hapi_multiproc
 log = logging.getLogger(__name__)
 
 
+def make_utc_datetime(input_dt: str or datetime) -> datetime:
+    if type(input_dt) is str:
+        input_dt = parse_datetime(input_dt)
+    return input_dt.replace(tzinfo=timezone.utc)
+
+
 def isoformat(dt: Union[str, datetime]) -> str:
-    if type(dt) is str:
-        return parse_datetime(dt).isoformat()
-    else:
-        return dt.isoformat()
+    return make_utc_datetime(dt).isoformat().replace('+00:00', 'Z')
 
 
 def only_public_members(obj: object) -> Dict:
@@ -87,8 +90,10 @@ _F = TypeVar('_F')
 def get_from_endpoint(hapi_url: str, endpoint: str, parameters=None,
                       payload_extractor: Callable[[bytes], _F] = hapi_parsers.json_response) -> Optional[_F]:
     url = build_url(hapi_url, endpoint)
+    if parameters is None:
+        parameters = {}
     if url:
-        log.debug(f"New request url:{hapi_url}, endpoint: {endpoint}, parameters:{parameters}")
+        log.debug(f"New request url:  {url}?{'&'.join([key + '=' + value for key, value in parameters.items()])}")
         response = requests.get(url, params=parameters)
         if response.ok:
             log.debug(f"success!")
