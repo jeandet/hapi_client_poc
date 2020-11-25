@@ -50,8 +50,8 @@ def _(obj, indent=1, level=0) -> str:
     return str(obj)
 
 
-@_repr_class.register
-def _(obj: dict, indent=1, level=0) -> str:
+@_repr_class.register(dict)
+def _(obj, indent=1, level=0) -> str:
     return '\n'.join(
         [(' ' * indent * (level + 1)) + name + ': ' + _repr_class(value, indent=indent, level=level + 1) for
          name, value
